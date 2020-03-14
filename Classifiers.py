@@ -111,8 +111,46 @@ xgb = GradientBoostingClassifier()
 xgb_cv_model = GridSearchCV(xgb, xgb_params, cv = 10, n_jobs = -1, verbose = 2)
 
 
-# In[ ]:
+# In[15]:
 
 
 xgb_cv_model.fit(x_train, y_train)
+
+
+# In[16]:
+
+
+xgb = GradientBoostingClassifier(learning_rate = xgb_cv_model.best_params_["learning_rate"], 
+                    max_depth = xgb_cv_model.best_params_["max_depth"],
+                    min_samples_split = xgb_cv_model.best_params_["min_samples_split"],
+                    n_estimators = xgb_cv_model.best_params_["n_estimators"],
+                    subsample = xgb_cv_model.best_params_["subsample"])
+
+
+# In[17]:
+
+
+xgb_tuned =  xgb.fit(x_train,y_train)
+
+
+# In[18]:
+
+
+y_pred = xgb_tuned.predict(x_test)
+acc_gbk = round(accuracy_score(y_pred, y_test) * 100, 2)
+print(acc_gbk)
+
+
+# # Prediction 
+
+# In[20]:
+
+
+#set ids as PassengerId and predict survival 
+ids = test['PassengerId']
+predictions = xgb_tuned.predict(test.drop('PassengerId', axis=1))
+
+#set the output as a dataframe and convert to csv file named submission.csv
+output = pd.DataFrame({ 'PassengerId' : ids, 'Survived': predictions })
+output.to_csv('predictions.csv', index=False)
 
